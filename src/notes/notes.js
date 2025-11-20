@@ -25,6 +25,9 @@ NotesRoute.get('/notes', async (req, res) => {
 NotesRoute.post("/notes", async (req, res) => {
   try {
     const { title, content } = req.body;
+    if (!title || !content) {
+      return res.status(400).json({ message: "Title and content are required" });
+    }
 
     // 1️⃣ Read token from cookie
     const token = req.cookies?.auth_token;
@@ -54,9 +57,10 @@ NotesRoute.post("/notes", async (req, res) => {
       },
     });
 
+
     return res.status(201).json(note);
   } catch (err) {
-    console.error("Create Note Error:", err.message);
+
 
     return res.status(400).json({
       message: "Error creating note",
@@ -67,126 +71,128 @@ NotesRoute.post("/notes", async (req, res) => {
 
 
 
-// NotesRoute.get("/notes/:id", async (req, res) => {
-//   try {
-//     const id = Number(req.params.id);
-
-//     // Must be authenticated
-//     const token = req.cookies?.auth_token;
-//     if (!token) {
-//       return res.status(401).json({ message: "Not authenticated" });
-//     }
-
-//     // Verify token
-//     let decoded;
-//     try {
-//       decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-//     } catch (err) {
-//       return res.status(401).json({ message: "Invalid or expired token" });
-//     }
-
-//     // Fetch note
-//     const note = await prisma.note.findUnique({ where: { id } });
-//     if (!note) {
-//       return res.status(404).json({ message: "Note not found" });
-//     }
-
-//     // Prevent accessing other user's note
-//     if (note.userId !== decoded.userId) {
-//       return res.status(403).json({ message: "Forbidden" });
-//     }
-
-//     return res.json(note);
-//   } catch (err) {
-//     console.error("Error fetching note:", err.message);
-//     res.status(500).json({ message: "Error fetching note", error: err.message });
-//   }
-// });
+NotesRoute.get("/notes/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
 
 
+    // Must be authenticated
+    const token = req.cookies?.auth_token;
+    if (!token) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
-// NotesRoute.put("/notes/:id", async (req, res) => {
-//   try {
-//     const id = Number(req.params.id);
-//     const changes = req.body;
 
-//     // Token validation
-//     const token = req.cookies?.auth_token;
-//     if (!token) {
-//       return res.status(401).json({ message: "Not authenticated" });
-//     }
+    // Verify token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    } catch (err) {
+      return res.status(401).json({ message: "Invalid or expired token" });
+    }
 
-//     // Decode user
-//     let decoded;
-//     try {
-//       decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-//     } catch (err) {
-//       return res.status(401).json({ message: "Invalid or expired token" });
-//     }
+    // Fetch note
+    const note = await prisma.note.findUnique({ where: { id } });
+    if (!note) {
+      return res.status(404).json({ message: "Note not found" });
+    }
 
-//     // Find note
-//     const existing = await prisma.note.findUnique({ where: { id } });
-//     if (!existing) {
-//       return res.status(404).json({ message: "Note not found" });
-//     }
+    // Prevent accessing other user's note
+    if (note.userId !== decoded.userId) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
 
-//     // Check if user owns the note
-//     if (existing.userId !== decoded.userId) {
-//       return res.status(403).json({ message: "Forbidden" });
-//     }
+    return res.json(note);
+  } catch (err) {
 
-//     // Update note
-//     const updated = await prisma.note.update({
-//       where: { id },
-//       data: changes,
-//     });
-
-//     return res.json(updated);
-//   } catch (err) {
-//     res.status(400).json({
-//       message: "Error updating note",
-//       error: err.message,
-//     });
-//   }
-// });
+    res.status(500).json({ message: "Error fetching note", error: err.message });
+  }
+});
 
 
 
-// NotesRoute.delete("/notes/:id", async (req, res) => {
-//   try {
-//     const id = Number(req.params.id);
+NotesRoute.put("/notes/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const changes = req.body;
 
-//     const token = req.cookies?.auth_token;
-//     if (!token) {
-//       return res.status(401).json({ message: "Not authenticated" });
-//     }
+    // Token validation
+    const token = req.cookies?.auth_token;
+    if (!token) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
-//     let decoded;
-//     try {
-//       decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-//     } catch (err) {
-//       return res.status(401).json({ message: "Invalid or expired token" });
-//     }
+    // Decode user
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    } catch (err) {
+      return res.status(401).json({ message: "Invalid or expired token" });
+    }
 
-//     const existing = await prisma.note.findUnique({ where: { id } });
-//     if (!existing) {
-//       return res.status(404).json({ message: "Note not found" });
-//     }
+    // Find note
+    const existing = await prisma.note.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ message: "Note not found" });
+    }
 
-//     if (existing.userId !== decoded.userId) {
-//       return res.status(403).json({ message: "Forbidden" });
-//     }
+    // Check if user owns the note
+    if (existing.userId !== decoded.userId) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
 
-//     await prisma.note.delete({ where: { id } });
-//     res.json({ message: "Note deleted successfully" });
+    // Update note
+    const updated = await prisma.note.update({
+      where: { id },
+      data: changes,
+    });
 
-//   } catch (err) {
-//     res.status(400).json({
-//       message: "Error deleting note",
-//       error: err.message,
-//     });
-//   }
-// });
+    return res.json(updated);
+  } catch (err) {
+    res.status(400).json({
+      message: "Error updating note",
+      error: err.message,
+    });
+  }
+});
+
+
+
+NotesRoute.delete("/notes/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const token = req.cookies?.auth_token;
+    if (!token) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    } catch (err) {
+      return res.status(401).json({ message: "Invalid or expired token" });
+    }
+
+    const existing = await prisma.note.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ message: "Note not found" });
+    }
+
+    if (existing.userId !== decoded.userId) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    await prisma.note.delete({ where: { id } });
+    res.json({ message: "Note deleted successfully" });
+
+  } catch (err) {
+    res.status(400).json({
+      message: "Error deleting note",
+      error: err.message,
+    });
+  }
+});
 
 
 module.exports = { NotesRoute };

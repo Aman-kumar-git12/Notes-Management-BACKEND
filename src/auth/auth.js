@@ -57,7 +57,7 @@ authUserRoutes.post("/signup", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("SIGNUP ERROR:", err);
+
     return res.status(500).json({ message: "Internal server error" });
   }
 });
@@ -90,8 +90,8 @@ authUserRoutes.post("/login", async (req, res) => {
     // Set cookie
     res.cookie("auth_token", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "strict",
+      secure: false,
+      sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -103,7 +103,7 @@ authUserRoutes.post("/login", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("LOGIN ERROR:", err);
+
     return res.status(500).json({ message: "Internal server error" });
   }
 });
