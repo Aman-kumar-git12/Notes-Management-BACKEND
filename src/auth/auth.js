@@ -43,8 +43,8 @@ authUserRoutes.post("/signup", async (req, res) => {
     // Set secure cookie
     res.cookie("auth_token", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "strict",
+      secure: false,
+      sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -67,6 +67,7 @@ authUserRoutes.post("/signup", async (req, res) => {
 authUserRoutes.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log('ok')
 
     // Check user existence
     const user = await prisma.user.findUnique({ where: { email } });
@@ -103,8 +104,8 @@ authUserRoutes.post("/login", async (req, res) => {
     });
 
   } catch (err) {
-
-    return res.status(500).json({ message: "Internal server error" });
+    console.log(err)
+    return res.status(500).json({ message: "Internal server error", err });
   }
 });
 
