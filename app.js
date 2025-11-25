@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+app.set("trust proxy", 1); // Trust first proxy (required for secure cookies on Render/Heroku/etc)
 
 const dotenv = require("dotenv");
 dotenv.config();

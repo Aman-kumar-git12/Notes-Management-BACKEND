@@ -114,7 +114,12 @@ authUserRoutes.post("/login", async (req, res) => {
 
 
 authUserRoutes.post("/logout", (req, res) => {
-  res.clearCookie("auth_token");
+  const isProduction = process.env.NODE_ENV === "production";
+  res.clearCookie("auth_token", {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "None" : "Lax",
+  });
   return res.json({ message: "Logout successful" });
 });
 
