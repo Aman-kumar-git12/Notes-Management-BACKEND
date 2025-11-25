@@ -2,9 +2,9 @@ const express = require("express");
 const { prisma } = require("../../prisma/prismaClient");
 const authUserRoutes = express.Router();
 const { ValidationSignupData } = require("../middleware/validator");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
+
 
 
 
@@ -41,10 +41,11 @@ authUserRoutes.post("/signup", async (req, res) => {
     );
 
     // Set secure cookie
+    const isProduction = process.env.NODE_ENV === "production";
     res.cookie("auth_token", token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: isProduction,
+      sameSite: isProduction ? "None" : "Lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -58,7 +59,7 @@ authUserRoutes.post("/signup", async (req, res) => {
 
   } catch (err) {
 
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error", err });
   }
 });
 
@@ -89,10 +90,11 @@ authUserRoutes.post("/login", async (req, res) => {
     );
 
     // Set cookie
+    const isProduction = process.env.NODE_ENV === "production";
     res.cookie("auth_token", token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: isProduction,
+      sameSite: isProduction ? "None" : "Lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -124,14 +126,14 @@ authUserRoutes.get("/me", async (req, res) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
-    const user = await prisma.user.findUnique({ where: { id: decoded.userId }});
+    const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const { password, ...safeUser } = user;
 
     res.json({ user: safeUser });
   } catch (error) {
-    res.status(401).json({ message: "Invalid token" });
+    res.status(401).json({ message: "Invalid token", error });
   }
 });
 

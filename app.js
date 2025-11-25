@@ -3,13 +3,11 @@ const app = express();
 
 const dotenv = require("dotenv");
 dotenv.config();
+
 // Import routes
 const { authUserRoutes } = require("./src/auth/auth");
 const { ProfileRoute } = require("./src/profile/profile");
 const { NotesRoute } = require("./src/notes/notes");
-
-// Load environment variables early
-dotenv.config();
 
 // Middlewares
 app.use(express.json());
@@ -18,7 +16,7 @@ app.use(express.json());
 const cors = require("cors");
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
+  origin: process.env.FRONTEND_URL || "http://localhost:5173", // Fallback for local dev
   credentials: true,
 }));
 
@@ -31,10 +29,9 @@ app.use("/", ProfileRoute)
 app.use("/", NotesRoute);
 
 // Start Server
-app.listen(3000, () => {
-  console.log("Server is running on port 3000");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
-
-
 
 module.exports = { app };
