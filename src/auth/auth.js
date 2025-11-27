@@ -10,7 +10,7 @@ const jwt = require("jsonwebtoken");
 
 authUserRoutes.post("/signup", async (req, res) => {
   try {
-    // Validate data
+    console.log("hey this route is working you hit the right routes")
     try {
       ValidationSignupData(req);
     } catch (err) {
@@ -58,7 +58,7 @@ authUserRoutes.post("/signup", async (req, res) => {
     });
 
   } catch (err) {
-
+        console.log(err.message)
     return res.status(500).json({ message: "Internal server error", err });
   }
 });
